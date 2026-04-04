@@ -15,6 +15,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.app.bymarket.presentation.navigation.Screen
 import com.app.bymarket.presentation.screens.*
+import com.app.bymarket.presentation.vm.CartViewModel
+import com.app.bymarket.presentation.vm.ProductViewModel
 import com.app.bymarket.presentation.vm.UserViewModel
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -30,6 +32,7 @@ val ScreenSaver = Saver<Screen, String>(
             is Screen.Registration -> "registration"
             is Screen.Main -> "main"
             is Screen.Profile -> "profile"
+            is Screen.Cart -> "cart"
         }
     },
     restore = {
@@ -39,6 +42,7 @@ val ScreenSaver = Saver<Screen, String>(
             "registration" -> Screen.Registration
             "main" -> Screen.Main
             "profile" -> Screen.Profile
+            "cart" -> Screen.Cart
             else -> Screen.Splash
         }
     }
@@ -100,7 +104,14 @@ fun App(
                 onNavigateToMain = { currentScreen = Screen.Main }
             )
             Screen.Main -> MainScreen(
-                onNavigateToProfile = { currentScreen = Screen.Profile }
+                viewModel = koinViewModel<ProductViewModel>(),
+                cartViewModel = koinViewModel<CartViewModel>(),
+                onNavigateToProfile = { currentScreen = Screen.Profile },
+                onNavigateToCart = { currentScreen = Screen.Cart }
+            )
+            Screen.Cart -> CartScreen(
+                viewModel = koinViewModel<CartViewModel>(),
+                onNavigateBack = { currentScreen = Screen.Main }
             )
             Screen.Profile -> ProfileScreen(
                 onNavigateBack = { currentScreen = Screen.Main },

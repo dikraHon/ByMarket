@@ -21,6 +21,10 @@ room = "2.8.4"
 sqlite = "2.6.2"
 ksp = "2.3.2"
 firebase-gitlive = "2.4.0"
+zxing = "3.5.3"
+play-services-mlkit-barcode-scanning = "18.3.1"
+camera-view = "1.4.1"
+guava = "33.5.0-android"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -67,6 +71,14 @@ sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sql
 firebase-auth = { module = "dev.gitlive:firebase-auth", version.ref = "firebase-gitlive" }
 firebase-firestore = { module = "dev.gitlive:firebase-firestore", version.ref = "firebase-gitlive" }
 firebase-database = { module = "dev.gitlive:firebase-database", version.ref = "firebase-gitlive" }
+
+# Barcode & Camera
+zxing-core = { module = "com.google.zxing:core", version.ref = "zxing" }
+play-services-mlkit-barcode-scanning = { module = "com.google.android.gms:play-services-mlkit-barcode-scanning", version.ref = "play-services-mlkit-barcode-scanning" }
+androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "camera-view" }
+androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "camera-view" }
+androidx-camera-view = { module = "androidx.camera:camera-view", version.ref = "camera-view" }
+guava = { module = "com.google.guava:guava", version.ref = "guava" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

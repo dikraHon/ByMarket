@@ -44,6 +44,13 @@ kotlin {
             implementation(libs.androidx.core.splashscreen)
             implementation(libs.koin.android)
             implementation(libs.ktor.client.okhttp)
+            
+            // Camera & Barcode for Android
+            implementation(libs.play.services.mlkit.barcode.scanning)
+            implementation(libs.androidx.camera.camera2)
+            implementation(libs.androidx.camera.lifecycle)
+            implementation(libs.androidx.camera.view)
+            implementation(libs.guava)
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
@@ -72,6 +79,9 @@ kotlin {
             implementation(libs.firebase.auth)
             implementation(libs.firebase.firestore)
             implementation(libs.firebase.database)
+            
+            // barcode generation
+            implementation(libs.zxing.core)
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)

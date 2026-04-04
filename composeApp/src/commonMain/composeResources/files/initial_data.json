@@ -1,0 +1,22 @@
+{
+  "units": [
+    { "id": 1, "name": "кг" },
+    { "id": 2, "name": "шт" },
+    { "id": 3, "name": "л" }
+  ],
+  "packs": [
+    { "id": 1, "unitId": 1, "name": "Яблоки", "type": 1, "quant": 1000, "stock": 50.0 },
+    { "id": 2, "unitId": 2, "name": "Хлеб", "type": 0, "quant": 1, "stock": 20.0 },
+    { "id": 3, "unitId": 3, "name": "Молоко", "type": 0, "quant": 1, "stock": 15.0 }
+  ],
+  "barcodes": [
+    { "id": 1, "packId": 1, "body": "1234567890" },
+    { "id": 2, "packId": 2, "body": "0987654321" },
+    { "id": 3, "packId": 3, "body": "5555555555" }
+  ],
+  "prices": [
+    { "id": 1, "packId": 1, "price": 15000, "bonus": 1000 },
+    { "id": 2, "packId": 2, "price": 5000, "bonus": 0 },
+    { "id": 3, "packId": 3, "price": 8000, "bonus": 500 }
+  ]
+}

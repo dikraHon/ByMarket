@@ -16,4 +16,6 @@ sealed class Screen {
     data object Main : Screen()
     @Serializable
     data object Profile : Screen()
+    @Serializable
+    data object Cart : Screen()
 }
