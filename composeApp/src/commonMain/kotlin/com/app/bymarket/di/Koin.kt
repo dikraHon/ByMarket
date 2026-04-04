@@ -16,7 +16,9 @@ import org.koin.dsl.KoinAppDeclaration
 import org.koin.dsl.module
 
 val firebaseModule = module {
-    single { Firebase.auth }
+    single {
+        Firebase.auth 
+    }
     single { Firebase.firestore }
 }
 

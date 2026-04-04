@@ -41,6 +41,7 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.activity.compose)
+            implementation(libs.androidx.core.splashscreen)
             implementation(libs.koin.android)
             implementation(libs.ktor.client.okhttp)
         }
@@ -54,21 +55,16 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
             
-            // Icons
-            implementation(compose.materialIconsExtended)
-            
-            // Koin
+            implementation(libs.material.icons.extended)
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel)
             
-            // Ktor
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
             implementation(libs.ktor.client.logging)
             
-            // Room
             implementation(libs.room.runtime)
             implementation(libs.sqlite.bundled)
 
@@ -84,12 +80,10 @@ kotlin {
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
         }
-        commonTest.dependencies {
-            implementation(libs.kotlin.test)
-        }
     }
 }
 
+@Suppress("DEPRECATION")
 android {
     namespace = "com.app.bymarket"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
@@ -104,22 +98,6 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
-        }
-    }
-
-    signingConfigs {
-        create("release") {
-            storeFile = file("${rootDir.path}/my-keystore.jks")
-            storePassword = "345723"
-            keyAlias = "key0"
-            keyPassword = "345723"
-        }
-    }
-
-    buildTypes {
-        getByName("release") {
-            isMinifyEnabled = false
-            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {
@@ -143,11 +121,21 @@ room {
 compose.desktop {
     application {
         mainClass = "com.app.bymarket.MainKt"
-
         nativeDistributions {
             targetFormats(TargetFormat.Exe, TargetFormat.Msi)
             packageName = "com.app.bymarket"
             packageVersion = "1.0.0"
+            windows {
+                iconFile.set(project.file("src/commonMain/composeResources/drawable/icon_app_03.ico"))
+            }
         }
+    }
+}
+
+configurations.all {
+    val isDesktop = name.contains("desktop", ignoreCase = true) || name.contains("jvm", ignoreCase = true)
+    if (isDesktop) {
+        exclude(group = "com.google.firebase")
+        exclude(group = "com.google.android.gms")
     }
 }

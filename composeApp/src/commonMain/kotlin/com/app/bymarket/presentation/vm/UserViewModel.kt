@@ -3,14 +3,15 @@ package com.app.bymarket.presentation.vm
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.bymarket.domain.models.userModels.User
-import com.app.bymarket.domain.usecase.GetCurrentUserUseCase
+import com.app.bymarket.domain.repository.AuthRepository
 import com.app.bymarket.domain.usecase.SignOutUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class UserViewModel(
-    private val getCurrentUserUseCase: GetCurrentUserUseCase,
+    private val authRepository: AuthRepository,
     private val signOutUseCase: SignOutUseCase
 ) : ViewModel() {
     
@@ -21,17 +22,13 @@ class UserViewModel(
     val isLoading: StateFlow<Boolean> = _isLoading
 
     init {
-        fetchUserData()
+        observeAuthState()
     }
 
-    fun fetchUserData() {
+    private fun observeAuthState() {
         viewModelScope.launch {
-            _isLoading.value = true
-            try {
-                _user.value = getCurrentUserUseCase()
-            } catch (_: Exception) {
-                _user.value = null
-            } finally {
+            authRepository.authState.collectLatest { currentUser ->
+                _user.value = currentUser
                 _isLoading.value = false
             }
         }
@@ -41,7 +38,6 @@ class UserViewModel(
         viewModelScope.launch {
             signOutUseCase()
             _user.value = null
-            _isLoading.value = false
         }
     }
 }
