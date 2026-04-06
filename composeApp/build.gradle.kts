@@ -10,6 +10,7 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.room)
     alias(libs.plugins.googleServices)
+    alias(libs.plugins.firebaseCrashlytics)
 }
 
 kotlin {
@@ -41,8 +42,17 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.activity.compose)
+            implementation(libs.androidx.core.splashscreen)
             implementation(libs.koin.android)
             implementation(libs.ktor.client.okhttp)
+            implementation(libs.firebase.crashlytics)
+            
+            // Camera & Barcode for Android
+            implementation(libs.play.services.mlkit.barcode.scanning)
+            implementation(libs.androidx.camera.camera2)
+            implementation(libs.androidx.camera.lifecycle)
+            implementation(libs.androidx.camera.view)
+            implementation(libs.guava)
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
@@ -54,21 +64,18 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
             
-            // Icons
-            implementation(compose.materialIconsExtended)
-            
-            // Koin
+            implementation(libs.material.icons.extended)
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel)
             
-            // Ktor
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
             implementation(libs.ktor.client.logging)
             
-            // Room
+            implementation(libs.kotlinx.datetime)
+
             implementation(libs.room.runtime)
             implementation(libs.sqlite.bundled)
 
@@ -76,6 +83,9 @@ kotlin {
             implementation(libs.firebase.auth)
             implementation(libs.firebase.firestore)
             implementation(libs.firebase.database)
+            
+            // barcode generation
+            implementation(libs.zxing.core)
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
@@ -83,13 +93,12 @@ kotlin {
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
-        }
-        commonTest.dependencies {
-            implementation(libs.kotlin.test)
+            implementation(libs.firebase.crashlytics)
         }
     }
 }
 
+@Suppress("DEPRECATION")
 android {
     namespace = "com.app.bymarket"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
@@ -104,22 +113,6 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
-        }
-    }
-
-    signingConfigs {
-        create("release") {
-            storeFile = file("${rootDir.path}/my-keystore.jks")
-            storePassword = "345723"
-            keyAlias = "key0"
-            keyPassword = "345723"
-        }
-    }
-
-    buildTypes {
-        getByName("release") {
-            isMinifyEnabled = false
-            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {
@@ -143,11 +136,21 @@ room {
 compose.desktop {
     application {
         mainClass = "com.app.bymarket.MainKt"
-
         nativeDistributions {
             targetFormats(TargetFormat.Exe, TargetFormat.Msi)
             packageName = "com.app.bymarket"
             packageVersion = "1.0.0"
+            windows {
+                iconFile.set(project.file("src/commonMain/composeResources/drawable/icon_app_03.ico"))
+            }
         }
+    }
+}
+
+configurations.all {
+    val isDesktop = name.contains("desktop", ignoreCase = true) || name.contains("jvm", ignoreCase = true)
+    if (isDesktop) {
+        exclude(group = "com.google.firebase")
+        exclude(group = "com.google.android.gms")
     }
 }

@@ -5,13 +5,29 @@ import com.app.bymarket.domain.models.userModels.RegistrationData
 import com.app.bymarket.domain.models.userModels.User
 import com.app.bymarket.domain.repository.AuthRepository
 import dev.gitlive.firebase.auth.FirebaseAuth
+import dev.gitlive.firebase.auth.FirebaseUser
 import dev.gitlive.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.withTimeout
 
 class AuthRepositoryImpl(
     private val auth: FirebaseAuth,
     private val firestore: FirebaseFirestore
 ) : AuthRepository {
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override val authState: Flow<User?> = auth.authStateChanged.flatMapLatest { firebaseUser: FirebaseUser? ->
+        firebaseUser?.let { user ->
+            firestore.collection("users").document(user.uid).snapshots.map { snapshot ->
+                try {
+                    snapshot.data<User>()
+                } catch (e: Exception) {
+                    null
+                }
+            }
+        } ?: flowOf(null)
+    }
 
     override suspend fun signIn(loginData: LoginData): Result<User> = runCatching {
         val authResult = auth.signInWithEmailAndPassword(loginData.email, loginData.password)
