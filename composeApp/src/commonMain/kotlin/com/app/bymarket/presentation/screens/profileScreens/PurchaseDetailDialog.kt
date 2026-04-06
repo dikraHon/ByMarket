@@ -23,6 +23,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.app.bymarket.domain.models.Purchase
 
+import com.app.bymarket.presentation.components.BarcodeImage
+
 @Composable
 fun PurchaseDetailDialog(purchase: Purchase, onDismiss: () -> Unit) {
     Dialog(onDismissRequest = onDismiss) {
@@ -46,10 +48,9 @@ fun PurchaseDetailDialog(purchase: Purchase, onDismiss: () -> Unit) {
                                 Text("${item.quantity} x ${item.price} ₽")
                                 Text("${item.totalPrice} ₽", fontWeight = FontWeight.SemiBold)
                             }
-                            Text(
-                                "Штрихкод: ${item.barcode}",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.secondary
+                            BarcodeImage(
+                                barcode = item.barcode,
+                                modifier = Modifier.padding(top = 8.dp)
                             )
                             HorizontalDivider(modifier = Modifier.padding(top = 8.dp), thickness = 0.5.dp)
                         }

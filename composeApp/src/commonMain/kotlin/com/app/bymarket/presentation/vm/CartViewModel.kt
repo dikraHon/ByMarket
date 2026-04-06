@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.update
 import com.app.bymarket.domain.models.Purchase
 import com.app.bymarket.domain.models.PurchaseItem
 import com.app.bymarket.domain.repository.PurchaseRepository
+import com.app.bymarket.domain.repository.ProductRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -18,7 +19,8 @@ import kotlinx.coroutines.launch
 import androidx.lifecycle.viewModelScope
 
 class CartViewModel(
-    private val purchaseRepository: PurchaseRepository
+    private val purchaseRepository: PurchaseRepository,
+    private val productRepository: ProductRepository
 ) : ViewModel() {
     private val _cartItems = MutableStateFlow<List<CartItem>>(emptyList())
     val cartItems: StateFlow<List<CartItem>> = _cartItems.asStateFlow()
@@ -70,7 +72,7 @@ class CartViewModel(
 
         viewModelScope.launch {
             val purchase = Purchase(
-                timestamp = com.app.bymarket.presentation.vm.currentTimeMillis(),
+                timestamp = currentTimeMillis(),
                 totalAmount = totalAmount,
                 items = items.map {
                     PurchaseItem(
@@ -85,6 +87,11 @@ class CartViewModel(
 
             purchaseRepository.savePurchase(userId, purchase)
                 .onSuccess {
+                    // СПИСАНИЕ СО СКЛАДА
+                    items.forEach { item ->
+                        productRepository.reduceProductQuantity(item.product.id, item.quantity)
+                    }
+
                     clearCart()
                     _checkoutSuccess.emit(Unit)
                 }

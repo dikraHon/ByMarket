@@ -53,8 +53,8 @@ val useCaseModule = module {
 val viewModelModule = module {
     factory { AuthViewModel(get(), get()) }
     factory { UserViewModel(get(), get(), get()) }
-    factory { ProductViewModel(get(), get(), get(), get(), get()) }
-    single { CartViewModel(get()) }
+    factory { ProductViewModel(get()) }
+    single { CartViewModel(get(), get()) }
 }
 
 fun initKoin(appDeclaration: KoinAppDeclaration = {}) =

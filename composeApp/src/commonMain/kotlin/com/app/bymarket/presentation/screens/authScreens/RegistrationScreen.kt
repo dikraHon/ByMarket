@@ -4,13 +4,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.app.bymarket.presentation.vm.AuthViewModel
 import org.koin.compose.viewmodel.koinViewModel
@@ -26,8 +22,14 @@ fun RegistrationScreen(
     val firstName by viewModel.firstName.collectAsState()
     val lastName by viewModel.lastName.collectAsState()
     val patronymic by viewModel.patronymic.collectAsState()
+    
+    val emailError by viewModel.emailError.collectAsState()
+    val passwordError by viewModel.passwordError.collectAsState()
+    val firstNameError by viewModel.firstNameError.collectAsState()
+    val lastNameError by viewModel.lastNameError.collectAsState()
+    
     val isLoading by viewModel.isLoading.collectAsState()
-    val error by viewModel.error.collectAsState()
+    val apiError by viewModel.error.collectAsState()
     val isSuccess by viewModel.isSuccess.collectAsState(initial = false)
 
     LaunchedEffect(isSuccess) {
@@ -37,7 +39,10 @@ fun RegistrationScreen(
     }
 
     Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp).verticalScroll(rememberScrollState()),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -45,63 +50,70 @@ fun RegistrationScreen(
         
         Spacer(modifier = Modifier.height(24.dp))
         
-        OutlinedTextField(
-            value = email,
-            onValueChange = { viewModel.onEmailChanged(it) },
-            label = { Text("Email") },
-            modifier = Modifier.fillMaxWidth()
-        )
-        
-        Spacer(modifier = Modifier.height(8.dp))
-        
-        OutlinedTextField(
-            value = password,
-            onValueChange = { viewModel.onPasswordChanged(it) },
-            label = { Text("Пароль") },
-            visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth()
-        )
-        
-        Spacer(modifier = Modifier.height(8.dp))
-        
-        OutlinedTextField(
-            value = firstName,
-            onValueChange = { viewModel.onFirstNameChanged(it) },
-            label = { Text("Имя") },
-            modifier = Modifier.fillMaxWidth()
-        )
-        
-        Spacer(modifier = Modifier.height(8.dp))
-        
-        OutlinedTextField(
+        NameField(
             value = lastName,
             onValueChange = { viewModel.onLastNameChanged(it) },
-            label = { Text("Фамилия") },
-            modifier = Modifier.fillMaxWidth()
+            label = "Фамилия",
+            error = lastNameError
         )
         
         Spacer(modifier = Modifier.height(8.dp))
         
-        OutlinedTextField(
-            value = patronymic,
-            onValueChange = { viewModel.onPatronymicChanged(it) },
-            label = { Text("Отчество (необязательно)") },
-            modifier = Modifier.fillMaxWidth()
+        NameField(
+            value = firstName,
+            onValueChange = { viewModel.onFirstNameChanged(it) },
+            label = "Имя",
+            error = firstNameError
         )
         
-        error?.let {
-            Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 8.dp))
+        Spacer(modifier = Modifier.height(8.dp))
+        
+        NameField(
+            value = patronymic,
+            onValueChange = { viewModel.onPatronymicChanged(it) },
+            label = "Отчество (необязательно)"
+        )
+        
+        Spacer(modifier = Modifier.height(8.dp))
+        
+        EmailField(
+            value = email,
+            onValueChange = { viewModel.onEmailChanged(it) },
+            error = emailError
+        )
+        
+        Spacer(modifier = Modifier.height(8.dp))
+        
+        PasswordField(
+            value = password,
+            onValueChange = { viewModel.onPasswordChanged(it) },
+            error = passwordError
+        )
+        
+        apiError?.let {
+            Text(
+                text = it,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.labelSmall,
+                modifier = Modifier.padding(top = 8.dp)
+            )
         }
         
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(24.dp))
         
         Button(
             onClick = { viewModel.signUp() },
             modifier = Modifier.fillMaxWidth(),
-            enabled = !isLoading
+            enabled = !isLoading && 
+                     emailError == null && 
+                     passwordError == null && 
+                     firstNameError == null && 
+                     lastNameError == null &&
+                     email.isNotEmpty() &&
+                     password.isNotEmpty()
         ) {
             if (isLoading) CircularProgressIndicator(modifier = Modifier.size(24.dp))
-            else Text("Создать аккаунт")
+            else Text("Зарегистрироваться")
         }
         
         TextButton(onClick = onNavigateBack) {

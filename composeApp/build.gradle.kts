@@ -10,6 +10,7 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.room)
     alias(libs.plugins.googleServices)
+    alias(libs.plugins.firebaseCrashlytics)
 }
 
 kotlin {
@@ -44,6 +45,7 @@ kotlin {
             implementation(libs.androidx.core.splashscreen)
             implementation(libs.koin.android)
             implementation(libs.ktor.client.okhttp)
+            implementation(libs.firebase.crashlytics)
             
             // Camera & Barcode for Android
             implementation(libs.play.services.mlkit.barcode.scanning)
@@ -91,6 +93,7 @@ kotlin {
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
+            implementation(libs.firebase.crashlytics)
         }
     }
 }

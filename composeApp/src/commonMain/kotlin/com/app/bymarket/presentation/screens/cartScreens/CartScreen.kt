@@ -149,9 +149,7 @@ fun CartScreen(
                                     style = MaterialTheme.typography.bodyMedium
                                 )
                                 IconButton(onClick = { 
-                                    if (item.quantity + step <= item.product.stock) {
-                                        viewModel.updateQuantity(item.product.id, item.quantity + step)
-                                    }
+                                    viewModel.updateQuantity(item.product.id, item.quantity + step)
                                 }) {
                                     Icon(Icons.Default.Add, contentDescription = "Больше")
                                 }

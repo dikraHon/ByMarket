@@ -93,12 +93,8 @@ fun MainScreen(
                                     scope.launch {
                                         val product = viewModel.searchByBarcode(barcodeInput)
                                         if (product != null) {
-                                            if (product.stock > 0) {
-                                                selectedProductForAdd = product
-                                                barcodeInput = ""
-                                            } else {
-                                                snackbarHostState.showSnackbar("Товара нет в наличии")
-                                            }
+                                            selectedProductForAdd = product
+                                            barcodeInput = ""
                                         } else {
                                             snackbarHostState.showSnackbar("Товар не найден")
                                         }
@@ -156,7 +152,7 @@ fun MainScreen(
                         isScanning = false
                         scope.launch {
                             val product = viewModel.searchByBarcode(result)
-                            if (product != null && product.stock > 0) {
+                            if (product != null) {
                                 selectedProductForAdd = product
                                 barcodeInput = ""
                             }

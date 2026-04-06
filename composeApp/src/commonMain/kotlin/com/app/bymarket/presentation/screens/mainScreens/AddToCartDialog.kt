@@ -17,7 +17,7 @@ fun AddToCartDialog(
 ) {
     var quantityText by remember { mutableStateOf(if (product.isWeight) "1.0" else "1") }
     val quantity = quantityText.toDoubleOrNull() ?: 0.0
-    val isValid = quantity > 0 && quantity <= product.stock
+    val isValid = quantity > 0 && quantity <= product.quant
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -27,8 +27,9 @@ fun AddToCartDialog(
                 Text(text = product.name, style = MaterialTheme.typography.titleMedium)
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "В наличии: ${product.stock} ${if (product.isWeight) "кг" else "шт"}",
-                    style = MaterialTheme.typography.bodySmall
+                    text = "В наличии: ${product.quant} ${product.unitName}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.secondary
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 OutlinedTextField(
@@ -53,7 +54,7 @@ fun AddToCartDialog(
                 )
                 if (!isValid && quantityText.isNotEmpty()) {
                     Text(
-                        text = if (quantity > product.stock) "Недостаточно на складе" else "Введите корректное число",
+                        text = if (quantity > product.quant) "Недостаточно на складе" else "Введите корректное число",
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.labelSmall
                     )

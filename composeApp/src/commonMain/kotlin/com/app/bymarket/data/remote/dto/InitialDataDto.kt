@@ -22,8 +22,7 @@ data class PackDto(
     val unitId: Int,
     val name: String,
     val type: Int,
-    val quant: Int,
-    val stock: Double = 0.0
+    val quant: Double
 )
 
 @Serializable

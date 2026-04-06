@@ -30,6 +30,9 @@ interface PackDao {
     @Query("SELECT * FROM pack WHERE id = :id")
     suspend fun getPackById(id: Int): PackEntity?
 
+    @Query("UPDATE pack SET quant = quant - :amount WHERE id = :id")
+    suspend fun reduceQuantity(id: Int, amount: Double)
+
     @Query("SELECT pack.* FROM pack INNER JOIN barcode ON pack.id = barcode.pack_id WHERE barcode.body = :barcode")
     suspend fun getPackByBarcode(barcode: String): PackEntity?
 }

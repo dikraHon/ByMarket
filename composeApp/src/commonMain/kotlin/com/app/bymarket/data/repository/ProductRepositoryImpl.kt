@@ -4,6 +4,8 @@ import com.app.bymarket.data.local.dao.BarcodeDao
 import com.app.bymarket.data.local.dao.PackDao
 import com.app.bymarket.data.local.dao.PackPriceDao
 import com.app.bymarket.data.local.dao.UnitDao
+import com.app.bymarket.data.remote.dto.InitialDataDto
+import com.app.bymarket.data.remote.dto.toEntity
 import com.app.bymarket.domain.models.Product
 import com.app.bymarket.domain.repository.ProductRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -11,7 +13,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
+import kotlinx.serialization.json.Json
+import bymarket.composeapp.generated.resources.Res
 
 class ProductRepositoryImpl(
     private val unitDao: UnitDao,
@@ -36,12 +39,11 @@ class ProductRepositoryImpl(
                     bonus = 0.0,
                     barcodes = emptyList(),
                     type = pack.type,
-                    quant = pack.quant,
-                    stock = pack.stock
+                    quant = pack.quant
                 )
             }
         }.flatMapLatest { products ->
-            if (products.isEmpty()) return@flatMapLatest kotlinx.coroutines.flow.flowOf(emptyList<Product>())
+            if (products.isEmpty()) return@flatMapLatest kotlinx.coroutines.flow.flowOf(emptyList())
 
             combine(
                 products.map { product ->
@@ -77,8 +79,27 @@ class ProductRepositoryImpl(
             bonus = (firstPrice?.bonus ?: 0) / 100.0,
             barcodes = barcodes.map { it.body },
             type = pack.type,
-            quant = pack.quant,
-            stock = pack.stock
+            quant = pack.quant
         )
+    }
+
+    override suspend fun seedInitialData() {
+        val currentPacks = packDao.getAllPacks().first()
+        if (currentPacks.isEmpty()) {
+            try {
+                val jsonString = Res.readBytes("files/initial_data.json").decodeToString()
+                val initialData = Json.decodeFromString<InitialDataDto>(jsonString)
+                unitDao.insert(initialData.units.map { it.toEntity() })
+                packDao.insert(initialData.packs.map { it.toEntity() })
+                barcodeDao.insert(initialData.barcodes.map { it.toEntity() })
+                packPriceDao.insert(initialData.prices.map { it.toEntity() })
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    override suspend fun reduceProductQuantity(productId: Int, amount: Double) {
+        packDao.reduceQuantity(productId, amount)
     }
 }
