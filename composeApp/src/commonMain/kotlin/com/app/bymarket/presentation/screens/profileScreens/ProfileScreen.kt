@@ -11,7 +11,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.app.bymarket.domain.models.Purchase
+import com.app.bymarket.domain.models.purchaseModels.Purchase
 import com.app.bymarket.presentation.vm.UserViewModel
 import org.koin.compose.viewmodel.koinViewModel
 

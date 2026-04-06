@@ -2,7 +2,7 @@ package com.app.bymarket.presentation.vm
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.app.bymarket.domain.models.Product
+import com.app.bymarket.domain.models.productModels.Product
 import com.app.bymarket.domain.repository.ProductRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

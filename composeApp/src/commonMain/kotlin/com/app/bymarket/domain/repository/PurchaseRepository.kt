@@ -1,6 +1,6 @@
 package com.app.bymarket.domain.repository
 
-import com.app.bymarket.domain.models.Purchase
+import com.app.bymarket.domain.models.purchaseModels.Purchase
 import kotlinx.coroutines.flow.Flow
 
 interface PurchaseRepository {

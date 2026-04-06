@@ -8,6 +8,7 @@ import androidx.room.PrimaryKey
 @Entity(
     tableName = "unit"
 )
+
 data class UnitEntity(
     @PrimaryKey val id: Int,
     val name: String
@@ -24,6 +25,7 @@ data class UnitEntity(
         )
     ]
 )
+
 data class PackEntity(
     @PrimaryKey val id: Int,
     @ColumnInfo(name = "unit_id") val unitId: Int,
@@ -60,6 +62,7 @@ data class BarcodeEntity(
         )
     ]
 )
+
 data class PackPriceEntity(
     @PrimaryKey val id: Int,
     @ColumnInfo(name = "pack_id") val packId: Int,

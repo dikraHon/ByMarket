@@ -1,4 +1,4 @@
-package com.app.bymarket.domain.models
+package com.app.bymarket.domain.models.productModels
 
 data class Product(
     val id: Int,
@@ -12,7 +12,4 @@ data class Product(
 ) {
     val finalPrice: Double get() = (price - bonus).coerceAtLeast(0.0)
     val isWeight: Boolean get() = type == 1
-    
-    val displayPrice: String get() = "${price} ₽"
-    val displayFinalPrice: String get() = "${finalPrice} ₽"
 }

@@ -1,6 +1,6 @@
 package com.app.bymarket.data.repository
 
-import com.app.bymarket.domain.models.Purchase
+import com.app.bymarket.domain.models.purchaseModels.Purchase
 import com.app.bymarket.domain.repository.PurchaseRepository
 import dev.gitlive.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.Flow

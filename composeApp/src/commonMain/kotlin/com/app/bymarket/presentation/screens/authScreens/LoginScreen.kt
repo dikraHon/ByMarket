@@ -6,7 +6,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.app.bymarket.presentation.vm.AuthViewModel
+import com.app.bymarket.presentation.screens.authScreens.components.EmailField
+import com.app.bymarket.presentation.screens.authScreens.components.PasswordField
+import com.app.bymarket.presentation.vm.authVm.AuthEvent
+import com.app.bymarket.presentation.vm.authVm.AuthViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -15,13 +18,7 @@ fun LoginScreen(
     onNavigateToMain: () -> Unit,
     viewModel: AuthViewModel = koinViewModel()
 ) {
-    val email by viewModel.email.collectAsState()
-    val password by viewModel.password.collectAsState()
-    val emailError by viewModel.emailError.collectAsState()
-    val passwordError by viewModel.passwordError.collectAsState()
-    
-    val isLoading by viewModel.isLoading.collectAsState()
-    val apiError by viewModel.error.collectAsState()
+    val state by viewModel.state.collectAsState()
     val isSuccess by viewModel.isSuccess.collectAsState(initial = false)
 
     LaunchedEffect(isSuccess) {
@@ -38,22 +35,22 @@ fun LoginScreen(
         Text("Вход", style = MaterialTheme.typography.headlineLarge)
         
         Spacer(modifier = Modifier.height(24.dp))
-        
+
         EmailField(
-            value = email,
-            onValueChange = { viewModel.onEmailChanged(it) },
-            error = emailError
+            value = state.email,
+            onValueChange = { viewModel.onEvent(AuthEvent.EmailChanged(it)) },
+            error = state.emailError
         )
         
         Spacer(modifier = Modifier.height(8.dp))
-        
+
         PasswordField(
-            value = password,
-            onValueChange = { viewModel.onPasswordChanged(it) },
-            error = passwordError
+            value = state.password,
+            onValueChange = { viewModel.onEvent(AuthEvent.PasswordChanged(it)) },
+            error = state.passwordError
         )
         
-        apiError?.let {
+        state.generalError?.let {
             Text(
                 text = it,
                 color = MaterialTheme.colorScheme.error,
@@ -65,11 +62,11 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(24.dp))
         
         Button(
-            onClick = { viewModel.login() },
+            onClick = { viewModel.onEvent(AuthEvent.LoginClicked) },
             modifier = Modifier.fillMaxWidth(),
-            enabled = !isLoading && emailError == null && passwordError == null && email.isNotEmpty()
+            enabled = !state.isLoading
         ) {
-            if (isLoading) CircularProgressIndicator(modifier = Modifier.size(24.dp))
+            if (state.isLoading) CircularProgressIndicator(modifier = Modifier.size(24.dp))
             else Text("Войти")
         }
         

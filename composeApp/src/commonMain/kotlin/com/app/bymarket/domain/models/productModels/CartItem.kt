@@ -1,4 +1,4 @@
-package com.app.bymarket.domain.models
+package com.app.bymarket.domain.models.productModels
 
 data class CartItem(
     val product: Product,

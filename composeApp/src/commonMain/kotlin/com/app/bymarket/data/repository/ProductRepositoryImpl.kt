@@ -5,8 +5,8 @@ import com.app.bymarket.data.local.dao.PackDao
 import com.app.bymarket.data.local.dao.PackPriceDao
 import com.app.bymarket.data.local.dao.UnitDao
 import com.app.bymarket.data.remote.dto.InitialDataDto
-import com.app.bymarket.data.remote.dto.toEntity
-import com.app.bymarket.domain.models.Product
+import com.app.bymarket.data.remote.mappers.toEntity
+import com.app.bymarket.domain.models.productModels.Product
 import com.app.bymarket.domain.repository.ProductRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow

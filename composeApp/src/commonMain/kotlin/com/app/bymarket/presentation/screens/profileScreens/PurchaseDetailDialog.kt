@@ -21,7 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import com.app.bymarket.domain.models.Purchase
+import com.app.bymarket.domain.models.purchaseModels.Purchase
 
 import com.app.bymarket.presentation.components.BarcodeImage
 

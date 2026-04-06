@@ -8,7 +8,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.app.bymarket.presentation.vm.AuthViewModel
+import com.app.bymarket.presentation.screens.authScreens.components.EmailField
+import com.app.bymarket.presentation.screens.authScreens.components.NameField
+import com.app.bymarket.presentation.screens.authScreens.components.PasswordField
+import com.app.bymarket.presentation.vm.authVm.AuthEvent
+import com.app.bymarket.presentation.vm.authVm.AuthViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -17,19 +21,7 @@ fun RegistrationScreen(
     onNavigateToMain: () -> Unit,
     viewModel: AuthViewModel = koinViewModel()
 ) {
-    val email by viewModel.email.collectAsState()
-    val password by viewModel.password.collectAsState()
-    val firstName by viewModel.firstName.collectAsState()
-    val lastName by viewModel.lastName.collectAsState()
-    val patronymic by viewModel.patronymic.collectAsState()
-    
-    val emailError by viewModel.emailError.collectAsState()
-    val passwordError by viewModel.passwordError.collectAsState()
-    val firstNameError by viewModel.firstNameError.collectAsState()
-    val lastNameError by viewModel.lastNameError.collectAsState()
-    
-    val isLoading by viewModel.isLoading.collectAsState()
-    val apiError by viewModel.error.collectAsState()
+    val state by viewModel.state.collectAsState()
     val isSuccess by viewModel.isSuccess.collectAsState(initial = false)
 
     LaunchedEffect(isSuccess) {
@@ -49,48 +41,48 @@ fun RegistrationScreen(
         Text("Регистрация", style = MaterialTheme.typography.headlineLarge)
         
         Spacer(modifier = Modifier.height(24.dp))
-        
+
         NameField(
-            value = lastName,
-            onValueChange = { viewModel.onLastNameChanged(it) },
+            value = state.lastName,
+            onValueChange = { viewModel.onEvent(AuthEvent.LastNameChanged(it)) },
             label = "Фамилия",
-            error = lastNameError
+            error = state.lastNameError
         )
         
         Spacer(modifier = Modifier.height(8.dp))
-        
+
         NameField(
-            value = firstName,
-            onValueChange = { viewModel.onFirstNameChanged(it) },
+            value = state.firstName,
+            onValueChange = { viewModel.onEvent(AuthEvent.FirstNameChanged(it)) },
             label = "Имя",
-            error = firstNameError
+            error = state.firstNameError
         )
         
         Spacer(modifier = Modifier.height(8.dp))
-        
+
         NameField(
-            value = patronymic,
-            onValueChange = { viewModel.onPatronymicChanged(it) },
+            value = state.patronymic,
+            onValueChange = { viewModel.onEvent(AuthEvent.PatronymicChanged(it)) },
             label = "Отчество (необязательно)"
         )
         
         Spacer(modifier = Modifier.height(8.dp))
-        
+
         EmailField(
-            value = email,
-            onValueChange = { viewModel.onEmailChanged(it) },
-            error = emailError
+            value = state.email,
+            onValueChange = { viewModel.onEvent(AuthEvent.EmailChanged(it)) },
+            error = state.emailError
         )
         
         Spacer(modifier = Modifier.height(8.dp))
-        
+
         PasswordField(
-            value = password,
-            onValueChange = { viewModel.onPasswordChanged(it) },
-            error = passwordError
+            value = state.password,
+            onValueChange = { viewModel.onEvent(AuthEvent.PasswordChanged(it)) },
+            error = state.passwordError
         )
         
-        apiError?.let {
+        state.generalError?.let {
             Text(
                 text = it,
                 color = MaterialTheme.colorScheme.error,
@@ -102,17 +94,11 @@ fun RegistrationScreen(
         Spacer(modifier = Modifier.height(24.dp))
         
         Button(
-            onClick = { viewModel.signUp() },
+            onClick = { viewModel.onEvent(AuthEvent.SignUpClicked) },
             modifier = Modifier.fillMaxWidth(),
-            enabled = !isLoading && 
-                     emailError == null && 
-                     passwordError == null && 
-                     firstNameError == null && 
-                     lastNameError == null &&
-                     email.isNotEmpty() &&
-                     password.isNotEmpty()
+            enabled = !state.isLoading
         ) {
-            if (isLoading) CircularProgressIndicator(modifier = Modifier.size(24.dp))
+            if (state.isLoading) CircularProgressIndicator(modifier = Modifier.size(24.dp))
             else Text("Зарегистрироваться")
         }
         

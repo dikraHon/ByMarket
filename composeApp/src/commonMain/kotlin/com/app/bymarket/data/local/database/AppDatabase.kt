@@ -33,7 +33,6 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun packPriceDao(): PackPriceDao
 }
 
-// Room compiler generates the `actual` implementations.
 @Suppress("KotlinNoActualForExpect")
 expect object AppDatabaseConstructor : RoomDatabaseConstructor<AppDatabase> {
     override fun initialize(): AppDatabase

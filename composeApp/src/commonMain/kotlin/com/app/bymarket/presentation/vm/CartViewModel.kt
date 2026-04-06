@@ -1,15 +1,15 @@
 package com.app.bymarket.presentation.vm
 
 import androidx.lifecycle.ViewModel
-import com.app.bymarket.domain.models.CartItem
-import com.app.bymarket.domain.models.Product
+import com.app.bymarket.domain.models.productModels.CartItem
+import com.app.bymarket.domain.models.productModels.Product
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
-import com.app.bymarket.domain.models.Purchase
-import com.app.bymarket.domain.models.PurchaseItem
+import com.app.bymarket.domain.models.purchaseModels.Purchase
+import com.app.bymarket.domain.models.purchaseModels.PurchaseItem
 import com.app.bymarket.domain.repository.PurchaseRepository
 import com.app.bymarket.domain.repository.ProductRepository
 import kotlinx.coroutines.flow.MutableSharedFlow

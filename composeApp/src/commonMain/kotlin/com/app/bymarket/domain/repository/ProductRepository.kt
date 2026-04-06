@@ -1,6 +1,6 @@
 package com.app.bymarket.domain.repository
 
-import com.app.bymarket.domain.models.Product
+import com.app.bymarket.domain.models.productModels.Product
 import kotlinx.coroutines.flow.Flow
 
 interface ProductRepository {

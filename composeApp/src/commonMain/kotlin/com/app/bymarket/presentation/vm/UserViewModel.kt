@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
-import com.app.bymarket.domain.models.Purchase
+import com.app.bymarket.domain.models.purchaseModels.Purchase
 import com.app.bymarket.domain.repository.PurchaseRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.flatMapLatest
