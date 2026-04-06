@@ -41,7 +41,6 @@ fun BarcodeImage(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(100.dp)
-                // Принудительно белый фон для контраста штрих-кода
                 .background(Color.White, RoundedCornerShape(4.dp))
                 .border(1.dp, Color.LightGray.copy(alpha = 0.5f), RoundedCornerShape(4.dp))
                 .padding(8.dp),
@@ -52,7 +51,7 @@ fun BarcodeImage(
                     bitmap = bitmap,
                     contentDescription = "Barcode $cleanBarcode",
                     modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Fit // Изменил на Fit, чтобы не обрезало края
+                    contentScale = ContentScale.Fit
                 )
             } else {
                 Text(

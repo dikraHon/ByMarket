@@ -12,24 +12,38 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.app.bymarket.domain.models.purchaseModels.Purchase
-import com.app.bymarket.presentation.vm.UserViewModel
+import com.app.bymarket.presentation.vm.userVm.UserEffect
+import com.app.bymarket.presentation.vm.userVm.UserEvent
+import com.app.bymarket.presentation.vm.userVm.UserViewModel
+import kotlinx.coroutines.flow.collectLatest
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
     onNavigateBack: () -> Unit,
-    onLogout: () -> Unit,
+    onLogoutSuccess: () -> Unit,
     viewModel: UserViewModel = koinViewModel()
 ) {
-    val user by viewModel.user.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
-    val history by viewModel.purchaseHistory.collectAsState()
+    val state by viewModel.state.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
     val selectedPurchase = remember { mutableStateOf<Purchase?>(null) }
 
+    LaunchedEffect(Unit) {
+        viewModel.effect.collectLatest { effect ->
+            when (effect) {
+                is UserEffect.LogoutSuccess -> onLogoutSuccess()
+                is UserEffect.Error -> {
+                    snackbarHostState.showSnackbar(effect.message)
+                }
+            }
+        }
+    }
+
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            TopAppBar(
+            CenterAlignedTopAppBar(
                 title = { Text("Профиль") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
@@ -43,9 +57,12 @@ fun ProfileScreen(
             modifier = Modifier.fillMaxSize().padding(paddingValues).padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if (isLoading) {
-                CircularProgressIndicator()
+            if (state.isLoading && state.user == null) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
             } else {
+                val user = state.user
                 val fullName = buildString {
                     append(user?.lastName ?: "")
                     append(" ")
@@ -54,10 +71,10 @@ fun ProfileScreen(
                         append(" ")
                         append(it)
                     }
-                }.trim()
+                }.trim().ifEmpty { "Пользователь" }
 
                 Text(
-                    text = fullName.ifEmpty { "Пользователь" },
+                    text = fullName,
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold
                 )
@@ -78,22 +95,26 @@ fun ProfileScreen(
                 
                 HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
-                if (history.isEmpty()) {
+                if (state.purchaseHistory.isEmpty()) {
                     Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                        Text("История пока пуста", color = MaterialTheme.colorScheme.outline)
+                        Text(
+                            text = if (state.isLoading) "Загрузка..." else "История пока пуста", 
+                            color = MaterialTheme.colorScheme.outline
+                        )
                     }
                 } else {
                     LazyColumn(modifier = Modifier.weight(1f).fillMaxWidth()) {
-                        items(history) { purchase ->
-                            PurchaseHistoryItem(purchase) {
-                                selectedPurchase.value = purchase
-                            }
+                        items(state.purchaseHistory) { purchase ->
+                            PurchaseHistoryItem(
+                                purchase = purchase,
+                                onClick = { selectedPurchase.value = purchase }
+                            )
                         }
                     }
                 }
                 
                 Button(
-                    onClick = onLogout,
+                    onClick = { viewModel.onEvent(UserEvent.Logout) },
                     modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                 ) {
@@ -103,7 +124,9 @@ fun ProfileScreen(
         }
     }
 
-    selectedPurchase.value?.let {
-        PurchaseDetailDialog(it) { selectedPurchase.value = null }
+    selectedPurchase.value?.let { purchase ->
+        PurchaseDetailDialog(purchase) { 
+            selectedPurchase.value = null 
+        }
     }
 }

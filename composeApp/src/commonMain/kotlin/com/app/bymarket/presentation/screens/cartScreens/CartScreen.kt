@@ -5,18 +5,18 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.app.bymarket.presentation.vm.CartViewModel
-import com.app.bymarket.presentation.vm.UserViewModel
-import kotlinx.coroutines.launch
+import com.app.bymarket.presentation.screens.cartScreens.components.CartItemRow
+import com.app.bymarket.presentation.vm.cartVm.CartEffect
+import com.app.bymarket.presentation.vm.cartVm.CartEvent
+import com.app.bymarket.presentation.vm.cartVm.CartViewModel
+import com.app.bymarket.presentation.vm.userVm.UserViewModel
+import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -25,21 +25,21 @@ fun CartScreen(
     userViewModel: UserViewModel,
     onNavigateBack: () -> Unit
 ) {
-    val cartItems by viewModel.cartItems.collectAsState()
-    val user by userViewModel.user.collectAsState()
-    val scope = rememberCoroutineScope()
+    val state by viewModel.state.collectAsState()
+    val userState by userViewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(Unit) {
-        viewModel.checkoutSuccess.collect {
-            snackbarHostState.showSnackbar("Покупка успешно совершена!")
-            onNavigateBack()
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        viewModel.error.collect {
-            snackbarHostState.showSnackbar(it)
+        viewModel.effect.collectLatest { effect ->
+            when (effect) {
+                is CartEffect.CheckoutSuccess -> {
+                    snackbarHostState.showSnackbar("Покупка успешно совершена!")
+                    onNavigateBack()
+                }
+                is CartEffect.Error -> {
+                    snackbarHostState.showSnackbar(effect.message)
+                }
+            }
         }
     }
 
@@ -56,7 +56,7 @@ fun CartScreen(
             )
         },
         bottomBar = {
-            if (cartItems.isNotEmpty()) {
+            if (state.items.isNotEmpty()) {
                 Surface(
                     tonalElevation = 8.dp,
                     shadowElevation = 8.dp
@@ -64,34 +64,41 @@ fun CartScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp),
+                            .padding(start = 16.dp, end = 16.dp, bottom = 40.dp, top = 8.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column {
                             Text("Итого:", style = MaterialTheme.typography.bodyMedium)
                             Text(
-                                "${viewModel.totalAmount} ₽",
+                                text = "${state.totalAmount} ₽",
                                 style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary
                             )
                         }
-                        Button(onClick = { 
-                            user?.let {
-                                viewModel.checkout(it.uid)
-                            } ?: scope.launch {
-                                snackbarHostState.showSnackbar("Необходима авторизация")
+                        Button(
+                            onClick = { 
+                                viewModel.onEvent(CartEvent.CheckoutAttempt(userState.user?.uid))
+                            },
+                            enabled = !state.isProcessing
+                        ) {
+                            if (state.isProcessing) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(24.dp),
+                                    color = MaterialTheme.colorScheme.onPrimary,
+                                    strokeWidth = 2.dp
+                                )
+                            } else {
+                                Text("Оплатить")
                             }
-                        }) {
-                            Text("Оплатить")
                         }
                     }
                 }
             }
         }
     ) { paddingValues ->
-        if (cartItems.isEmpty()) {
+        if (state.items.isEmpty()) {
             Box(
                 modifier = Modifier.fillMaxSize().padding(paddingValues),
                 contentAlignment = Alignment.Center
@@ -101,64 +108,22 @@ fun CartScreen(
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(paddingValues),
-                contentPadding = PaddingValues(8.dp)
+                contentPadding = PaddingValues(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(cartItems) { item ->
-                    Card(
-                        modifier = Modifier.fillMaxWidth().padding(4.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(12.dp).fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(item.product.name, fontWeight = FontWeight.Bold, maxLines = 1)
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(
-                                        "${item.product.finalPrice} ₽", 
-                                        color = MaterialTheme.colorScheme.primary,
-                                        fontWeight = FontWeight.SemiBold
-                                    )
-                                    Text(
-                                        " x ${if (item.product.isWeight) item.quantity else item.quantity.toInt()} ${if (item.product.isWeight) "кг" else "шт"}",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        modifier = Modifier.padding(start = 4.dp)
-                                    )
-                                }
-                                Text(
-                                    "Сумма: ${item.totalPrice} ₽",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.secondary
-                                )
-                            }
-                            
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                val step = if (item.product.isWeight) 0.1 else 1.0
-                                IconButton(onClick = { viewModel.updateQuantity(item.product.id, item.quantity - step) }) {
-                                    Icon(Icons.Default.Remove, contentDescription = "Меньше")
-                                }
-                                Text(
-                                    text = if (item.product.isWeight) {
-                                        // Округляем для корректного отображения
-                                        ((item.quantity * 10).toInt() / 10.0).toString()
-                                    } else {
-                                        item.quantity.toInt().toString()
-                                    },
-                                    modifier = Modifier.padding(horizontal = 4.dp),
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                                IconButton(onClick = { 
-                                    viewModel.updateQuantity(item.product.id, item.quantity + step)
-                                }) {
-                                    Icon(Icons.Default.Add, contentDescription = "Больше")
-                                }
-                                IconButton(onClick = { viewModel.removeFromCart(item.product.id) }) {
-                                    Icon(Icons.Default.Delete, contentDescription = "Удалить", tint = MaterialTheme.colorScheme.error)
-                                }
-                            }
+                items(
+                    items = state.items,
+                    key = { it.product.id }
+                ) { item ->
+                    CartItemRow(
+                        item = item,
+                        onUpdateQuantity = { id, qty -> 
+                            viewModel.onEvent(CartEvent.UpdateQuantity(id, qty)) 
+                        },
+                        onRemove = { id -> 
+                            viewModel.onEvent(CartEvent.RemoveFromCart(id)) 
                         }
-                    }
+                    )
                 }
             }
         }

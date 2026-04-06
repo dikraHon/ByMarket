@@ -24,6 +24,9 @@ fun ProductCard(
         modifier = modifier
             .fillMaxWidth()
             .padding(8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
@@ -40,6 +43,7 @@ fun ProductCard(
                     Text(
                         text = product.name,
                         style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.Bold
                     )
                     
@@ -49,7 +53,7 @@ fun ProductCard(
                                 text = "${product.price} ₽",
                                 style = MaterialTheme.typography.bodyMedium,
                                 textDecoration = TextDecoration.LineThrough,
-                                color = Color.Gray
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
@@ -95,7 +99,7 @@ fun ProductCard(
                 Text(
                     text = "В наличии: ${product.quant} ${product.unitName}",
                     style = MaterialTheme.typography.labelSmall,
-                    color = if (product.quant > 0) Color.Gray else Color.Red
+                    color = if (product.quant > 0) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error
                 )
             }
 

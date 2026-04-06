@@ -1,5 +1,6 @@
 package com.app.bymarket.presentation.screens.mainScreens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -15,12 +16,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.app.bymarket.domain.models.productModels.Product
 import com.app.bymarket.presentation.components.BarcodeScanner
-import com.app.bymarket.presentation.vm.CartViewModel
-import com.app.bymarket.presentation.vm.ProductViewModel
-import kotlinx.coroutines.launch
-import androidx.compose.foundation.clickable
+import com.app.bymarket.presentation.vm.cartVm.CartEvent
+import com.app.bymarket.presentation.vm.cartVm.CartViewModel
+import com.app.bymarket.presentation.vm.productVm.ProductEvent
+import com.app.bymarket.presentation.vm.productVm.ProductViewModel
+import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,15 +31,15 @@ fun MainScreen(
     onNavigateToProfile: () -> Unit,
     onNavigateToCart: () -> Unit
 ) {
-    val products by viewModel.products.collectAsState()
-    val cartItems by cartViewModel.cartItems.collectAsState()
-    val scope = rememberCoroutineScope()
+    val state by viewModel.state.collectAsState()
+    val cartState by cartViewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
-    
-    var barcodeInput by remember { mutableStateOf("") }
-    var isScanning by remember { mutableStateOf(false) }
-    
-    var selectedProductForAdd by remember { mutableStateOf<Product?>(null) }
+
+    LaunchedEffect(Unit) {
+        viewModel.uiEvent.collectLatest { message ->
+            snackbarHostState.showSnackbar(message)
+        }
+    }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -48,9 +49,9 @@ fun MainScreen(
                 actions = {
                     BadgedBox(
                         badge = {
-                            if (cartItems.isNotEmpty()) {
+                            if (cartState.items.isNotEmpty()) {
                                 Badge {
-                                    Text(cartItems.sumOf { it.quantity }.toInt().toString())
+                                    Text(cartState.totalQuantity.toString())
                                 }
                             }
                         }
@@ -69,15 +70,15 @@ fun MainScreen(
         Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
             Column(modifier = Modifier.fillMaxSize()) {
                 OutlinedTextField(
-                    value = barcodeInput,
-                    onValueChange = { barcodeInput = it },
+                    value = state.barcodeInput,
+                    onValueChange = { viewModel.onEvent(ProductEvent.BarcodeInputChanged(it)) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 8.dp),
                     label = { Text("Штрихкод") },
                     placeholder = { Text("Введите или сканируйте") },
                     leadingIcon = { 
-                        IconButton(onClick = { isScanning = true }) {
+                        IconButton(onClick = { viewModel.onEvent(ProductEvent.StartScanning) }) {
                             Icon(Icons.Default.QrCodeScanner, contentDescription = "Сканировать")
                         }
                     },
@@ -87,19 +88,9 @@ fun MainScreen(
                         imeAction = ImeAction.Search
                     ),
                     trailingIcon = {
-                        if (barcodeInput.isNotEmpty()) {
+                        if (state.barcodeInput.isNotEmpty()) {
                             Button(
-                                onClick = {
-                                    scope.launch {
-                                        val product = viewModel.searchByBarcode(barcodeInput)
-                                        if (product != null) {
-                                            selectedProductForAdd = product
-                                            barcodeInput = ""
-                                        } else {
-                                            snackbarHostState.showSnackbar("Товар не найден")
-                                        }
-                                    }
-                                },
+                                onClick = { viewModel.onEvent(ProductEvent.SearchClicked) },
                                 modifier = Modifier.padding(end = 4.dp)
                             ) {
                                 Text("ОК")
@@ -108,7 +99,7 @@ fun MainScreen(
                     }
                 )
 
-                if (products.isEmpty()) {
+                if (state.isLoading && state.products.isEmpty()) {
                     Box(
                         modifier = Modifier.weight(1f).fillMaxWidth(),
                         contentAlignment = Alignment.Center
@@ -120,45 +111,36 @@ fun MainScreen(
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(8.dp)
                     ) {
-                        items(products) { product ->
+                        items(state.products) { product ->
                             ProductCard(
                                 product = product,
-                                onAddToCart = { selectedProductForAdd = it },
-                                modifier = Modifier.clickable { selectedProductForAdd = product }
+                                onAddToCart = { viewModel.onEvent(ProductEvent.ProductSelected(it)) },
+                                modifier = Modifier.clickable { 
+                                    viewModel.onEvent(ProductEvent.ProductSelected(product)) 
+                                }
                             )
                         }
                     }
                 }
             }
 
-            selectedProductForAdd?.let { product ->
+            state.selectedProductForAdd?.let { product ->
                 AddToCartDialog(
                     product = product,
-                    onDismiss = { selectedProductForAdd = null },
+                    onDismiss = { viewModel.onEvent(ProductEvent.ProductSelected(null)) },
                     onConfirm = { quantity ->
-                        cartViewModel.addToCart(product, quantity)
-                        scope.launch {
-                            snackbarHostState.showSnackbar("Добавлено: ${product.name} ($quantity)")
-                        }
-                        selectedProductForAdd = null
+                        cartViewModel.onEvent(CartEvent.AddToCart(product.id, quantity))
+                        viewModel.onEvent(ProductEvent.ProductSelected(null))
                     }
                 )
             }
 
-            if (isScanning) {
+            if (state.isScanning) {
                 BarcodeScanner(
                     onResult = { result ->
-                        barcodeInput = result
-                        isScanning = false
-                        scope.launch {
-                            val product = viewModel.searchByBarcode(result)
-                            if (product != null) {
-                                selectedProductForAdd = product
-                                barcodeInput = ""
-                            }
-                        }
+                        viewModel.onEvent(ProductEvent.ScanResult(result))
                     },
-                    onClose = { isScanning = false },
+                    onClose = { viewModel.onEvent(ProductEvent.StopScanning) },
                     modifier = Modifier.fillMaxSize()
                 )
             }

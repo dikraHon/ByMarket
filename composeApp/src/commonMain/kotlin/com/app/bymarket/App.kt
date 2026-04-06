@@ -8,15 +8,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.app.bymarket.presentation.navigation.Screen
-import com.app.bymarket.presentation.vm.CartViewModel
-import com.app.bymarket.presentation.vm.ProductViewModel
-import com.app.bymarket.presentation.vm.UserViewModel
+import com.app.bymarket.presentation.navigation.Navigator
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 import bymarket.composeapp.generated.resources.Res
@@ -27,29 +26,37 @@ import com.app.bymarket.presentation.screens.authScreens.RegistrationScreen
 import com.app.bymarket.presentation.screens.cartScreens.CartScreen
 import com.app.bymarket.presentation.screens.mainScreens.MainScreen
 import com.app.bymarket.presentation.screens.profileScreens.ProfileScreen
+import com.app.bymarket.presentation.vm.cartVm.CartViewModel
+import com.app.bymarket.presentation.vm.productVm.ProductViewModel
+import com.app.bymarket.presentation.vm.userVm.UserViewModel
 
-val ScreenSaver = Saver<Screen, String>(
-    save = {
-        when (it) {
-            is Screen.Splash -> "splash"
-            is Screen.Auth -> "auth"
-            is Screen.Login -> "login"
-            is Screen.Registration -> "registration"
-            is Screen.Main -> "main"
-            is Screen.Profile -> "profile"
-            is Screen.Cart -> "cart"
+val NavigatorSaver: Saver<Navigator, Any> = listSaver(
+    save = { navigator -> 
+        navigator.getStack().map { screen ->
+            when (screen) {
+                is Screen.Splash -> "splash"
+                is Screen.Auth -> "auth"
+                is Screen.Login -> "login"
+                is Screen.Registration -> "registration"
+                is Screen.Main -> "main"
+                is Screen.Profile -> "profile"
+                is Screen.Cart -> "cart"
+            }
         }
     },
-    restore = {
-        when (it) {
-            "auth" -> Screen.Auth
-            "login" -> Screen.Login
-            "registration" -> Screen.Registration
-            "main" -> Screen.Main
-            "profile" -> Screen.Profile
-            "cart" -> Screen.Cart
-            else -> Screen.Splash
+    restore = { savedList ->
+        val screens = savedList.map {
+            when (it) {
+                "auth" -> Screen.Auth
+                "login" -> Screen.Login
+                "registration" -> Screen.Registration
+                "main" -> Screen.Main
+                "profile" -> Screen.Profile
+                "cart" -> Screen.Cart
+                else -> Screen.Splash
+            }
         }
+        Navigator(screens)
     }
 )
 
@@ -57,34 +64,32 @@ val ScreenSaver = Saver<Screen, String>(
 fun App(
     userViewModel: UserViewModel = koinViewModel()
 ) {
-    val user by userViewModel.user.collectAsState()
-    val isLoadingUser by userViewModel.isLoading.collectAsState()
+    val state by userViewModel.state.collectAsState()
     
-    var currentScreen by rememberSaveable(stateSaver = ScreenSaver) { 
-        mutableStateOf(Screen.Splash)
+    val navigator = rememberSaveable(saver = NavigatorSaver) { 
+        Navigator(Screen.Splash)
     }
 
-    LaunchedEffect(user, isLoadingUser) {
-        if (!isLoadingUser) {
-            if (user != null) {
-                if (currentScreen is Screen.Splash || currentScreen is Screen.Auth || currentScreen is Screen.Login || currentScreen is Screen.Registration) {
-                    currentScreen = Screen.Main
+    LaunchedEffect(state.user, state.isLoading) {
+        if (!state.isLoading) {
+            val current = navigator.currentScreen
+            if (state.user != null) {
+                if (current is Screen.Splash || current is Screen.Auth || current is Screen.Login || current is Screen.Registration) {
+                    navigator.replaceTo(Screen.Main)
                 }
             } else {
-                if (currentScreen is Screen.Splash) {
-                    currentScreen = Screen.Auth
+                if (current is Screen.Splash) {
+                    navigator.replaceTo(Screen.Auth)
                 }
             }
         }
     }
 
     MaterialTheme {
-        when (currentScreen) {
+        when (navigator.currentScreen) {
             Screen.Splash -> {
                 Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.White), 
+                    modifier = Modifier.fillMaxSize().background(Color.White), 
                     contentAlignment = Alignment.Center
                 ) {
                     if (!getPlatform().name.contains("Android", ignoreCase = true)) {
@@ -97,34 +102,34 @@ fun App(
                 }
             }
             Screen.Auth -> AuthScreen(
-                onNavigateToLogin = { currentScreen = Screen.Login },
-                onNavigateToRegistration = { currentScreen = Screen.Registration }
+                onNavigateToLogin = { navigator.navigateTo(Screen.Login) },
+                onNavigateToRegistration = { navigator.navigateTo(Screen.Registration) }
             )
             Screen.Login -> LoginScreen(
-                onNavigateBack = { currentScreen = Screen.Auth },
-                onNavigateToMain = { currentScreen = Screen.Main }
+                onNavigateBack = { navigator.pop() },
+                onNavigateToMain = { navigator.replaceTo(Screen.Main) }
             )
             Screen.Registration -> RegistrationScreen(
-                onNavigateBack = { currentScreen = Screen.Auth },
-                onNavigateToMain = { currentScreen = Screen.Main }
+                onNavigateBack = { navigator.pop() },
+                onNavigateToMain = { navigator.replaceTo(Screen.Main) }
             )
             Screen.Main -> MainScreen(
                 viewModel = koinViewModel<ProductViewModel>(),
                 cartViewModel = koinViewModel<CartViewModel>(),
-                onNavigateToProfile = { currentScreen = Screen.Profile },
-                onNavigateToCart = { currentScreen = Screen.Cart }
+                onNavigateToProfile = { navigator.navigateTo(Screen.Profile) },
+                onNavigateToCart = { navigator.navigateTo(Screen.Cart) }
             )
             Screen.Cart -> CartScreen(
                 viewModel = koinViewModel<CartViewModel>(),
                 userViewModel = userViewModel,
-                onNavigateBack = { currentScreen = Screen.Main }
+                onNavigateBack = { navigator.pop() }
             )
             Screen.Profile -> ProfileScreen(
-                onNavigateBack = { currentScreen = Screen.Main },
-                onLogout = {
-                    userViewModel.logout()
-                    currentScreen = Screen.Auth
-                }
+                onNavigateBack = { navigator.pop() },
+                onLogoutSuccess = {
+                    navigator.replaceTo(Screen.Auth)
+                },
+                viewModel = userViewModel
             )
         }
     }

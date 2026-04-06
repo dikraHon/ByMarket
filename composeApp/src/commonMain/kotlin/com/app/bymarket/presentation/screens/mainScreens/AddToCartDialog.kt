@@ -1,13 +1,14 @@
 package com.app.bymarket.presentation.screens.mainScreens
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.app.bymarket.domain.models.productModels.Product
+import com.app.bymarket.domain.validation.ProductValidator
+import com.app.bymarket.domain.validation.QuantityValidationResult
+import com.app.bymarket.presentation.components.QuantityField
 
 @Composable
 fun AddToCartDialog(
@@ -16,8 +17,12 @@ fun AddToCartDialog(
     onConfirm: (Double) -> Unit
 ) {
     var quantityText by remember { mutableStateOf(if (product.isWeight) "1.0" else "1") }
-    val quantity = quantityText.toDoubleOrNull() ?: 0.0
-    val isValid = quantity > 0 && quantity <= product.quant
+    val validationResult = remember(quantityText, product.quant) {
+        ProductValidator.validateQuantity(quantityText, product.quant)
+    }
+
+    val isError = validationResult !is QuantityValidationResult.Valid && quantityText.isNotEmpty()
+    val isInsufficient = validationResult is QuantityValidationResult.InsufficientStock
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -26,45 +31,48 @@ fun AddToCartDialog(
             Column {
                 Text(text = product.name, style = MaterialTheme.typography.titleMedium)
                 Spacer(modifier = Modifier.height(8.dp))
+                
                 Text(
                     text = "В наличии: ${product.quant} ${product.unitName}",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.secondary
+                    color = if (isInsufficient) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.secondary
                 )
+                
                 Spacer(modifier = Modifier.height(16.dp))
-                OutlinedTextField(
+                
+                QuantityField(
                     value = quantityText,
-                    onValueChange = {
-                        if (product.isWeight) {
-                            if (it.all { char -> char.isDigit() || char == '.' } && it.count { char -> char == '.' } <= 1) {
-                                quantityText = it
-                            }
-                        } else {
-                            if (it.all { char -> char.isDigit() }) {
-                                quantityText = it
-                            }
-                        }
-                    },
-                    label = { Text("Количество (${if (product.isWeight) "кг" else "шт"})") },
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = if (product.isWeight) KeyboardType.Decimal else KeyboardType.Number
-                    ),
-                    modifier = Modifier.fillMaxWidth(),
-                    isError = !isValid && quantityText.isNotEmpty()
+                    onValueChange = { quantityText = it },
+                    isWeight = product.isWeight,
+                    isError = isError,
+                    unitName = product.unitName
                 )
-                if (!isValid && quantityText.isNotEmpty()) {
-                    Text(
-                        text = if (quantity > product.quant) "Недостаточно на складе" else "Введите корректное число",
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.labelSmall
-                    )
+
+                if (isError) {
+                    val errorMessage = when (validationResult) {
+                        is QuantityValidationResult.InsufficientStock -> "Недостаточно на складе"
+                        is QuantityValidationResult.NegativeOrZero -> "Число должно быть больше 0"
+                        is QuantityValidationResult.InvalidFormat -> "Некорректный формат"
+                        else -> null
+                    }
+                    
+                    errorMessage?.let {
+                        Text(
+                            text = it,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.labelSmall,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                    }
                 }
             }
         },
         confirmButton = {
             Button(
-                onClick = { onConfirm(quantity) },
-                enabled = isValid
+                onClick = { 
+                    quantityText.toDoubleOrNull()?.let { onConfirm(it) }
+                },
+                enabled = validationResult is QuantityValidationResult.Valid
             ) {
                 Text("Добавить")
             }

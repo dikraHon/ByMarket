@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.serialization.json.Json
 import bymarket.composeapp.generated.resources.Res
+import com.app.bymarket.data.local.entities.PackEntity
+import kotlinx.coroutines.flow.flowOf
 
 class ProductRepositoryImpl(
     private val unitDao: UnitDao,
@@ -43,7 +45,7 @@ class ProductRepositoryImpl(
                 )
             }
         }.flatMapLatest { products ->
-            if (products.isEmpty()) return@flatMapLatest kotlinx.coroutines.flow.flowOf(emptyList())
+            if (products.isEmpty()) return@flatMapLatest flowOf(emptyList())
 
             combine(
                 products.map { product ->
@@ -65,6 +67,15 @@ class ProductRepositoryImpl(
 
     override suspend fun getProductByBarcode(barcode: String): Product? {
         val pack = packDao.getPackByBarcode(barcode) ?: return null
+        return getProductFromPack(pack)
+    }
+
+    override suspend fun getProductById(id: Int): Product? {
+        val pack = packDao.getPackById(id) ?: return null
+        return getProductFromPack(pack)
+    }
+
+    private suspend fun getProductFromPack(pack: PackEntity): Product {
         val units = unitDao.getAllUnits().first()
         val unit = units.find { it.id == pack.unitId }
         val barcodes = barcodeDao.getBarcodesByPackId(pack.id).first()

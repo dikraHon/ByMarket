@@ -4,10 +4,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import com.app.bymarket.presentation.vm.UserViewModel
+import com.app.bymarket.presentation.vm.userVm.UserViewModel
 import org.koin.android.ext.android.inject
 
 class MainActivity : ComponentActivity() {
@@ -16,8 +14,9 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
+
         splashScreen.setKeepOnScreenCondition {
-            userViewModel.isLoading.value
+            userViewModel.state.value.isLoading
         }
 
         enableEdgeToEdge()
@@ -27,10 +26,4 @@ class MainActivity : ComponentActivity() {
             App(userViewModel = userViewModel)
         }
     }
-}
-
-@Preview
-@Composable
-fun AppAndroidPreview() {
-    App()
 }
