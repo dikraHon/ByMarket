@@ -5,13 +5,18 @@ import androidx.compose.ui.window.application
 import com.app.bymarket.di.initKoin
 
 fun main() {
-    initKoin()
-    application {
-        Window(
-            onCloseRequest = ::exitApplication,
-            title = "ByMarket",
-        ) {
-            App()
+    try {
+        initKoin()
+        
+        application {
+            Window(
+                onCloseRequest = ::exitApplication,
+                title = "ByMarket",
+            ) {
+                App()
+            }
         }
+    } catch (e: Exception) {
+        e.printStackTrace()
     }
 }
