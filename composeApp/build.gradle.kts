@@ -72,6 +72,8 @@ kotlin {
             implementation(libs.ktor.serialization.kotlinx.json)
             implementation(libs.ktor.client.logging)
             
+            implementation(libs.kotlinx.datetime)
+
             implementation(libs.room.runtime)
             implementation(libs.sqlite.bundled)
 

@@ -1,11 +1,13 @@
-package com.app.bymarket.presentation.components
+package com.app.bymarket.presentation.screens.mainScreens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.app.bymarket.domain.models.Product
@@ -46,19 +48,30 @@ fun ProductCard(
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = androidx.compose.ui.Alignment.Bottom
+                verticalAlignment = Alignment.Bottom
             ) {
                 Column {
-                    // Цена и единица измерения (квант)
-                    Row(verticalAlignment = androidx.compose.ui.Alignment.Bottom) {
+                    Row(verticalAlignment = Alignment.Bottom) {
                         Text(
-                            text = "${product.price} ₽",
+                            text = "${product.finalPrice} ₽",
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
+                            color = if (product.bonus > 0) Color(0xFFD32F2F) else MaterialTheme.colorScheme.primary
                         )
+                        
+                        if (product.bonus > 0) {
+                            Text(
+                                text = "${product.price} ₽",
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    textDecoration = TextDecoration.LineThrough
+                                ),
+                                color = Color.Gray,
+                                modifier = Modifier.padding(start = 8.dp)
+                            )
+                        }
+
                         Text(
-                            text = " / ${product.quant} ${product.unitName}",
+                            text = " / ${if (product.isWeight) "1 кг" else "${product.quant} ${product.unitName}"}",
                             style = MaterialTheme.typography.bodySmall,
                             modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)
                         )
@@ -66,19 +79,20 @@ fun ProductCard(
                     
                     if (product.bonus > 0) {
                         Text(
-                            text = "Скидка: ${product.bonus} ₽",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color.Red
+                            text = "Выгода: ${product.bonus} ₽",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color(0xFF388E3C),
+                            fontWeight = FontWeight.Bold
                         )
                     }
                     
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
                     Surface(
                         color = (if (product.stock > 0) Color(0xFFE8F5E9) else Color(0xFFFFEBEE)),
                         shape = MaterialTheme.shapes.extraSmall
                     ) {
                         Text(
-                            text = " В наличии: ${product.stock} ${if (product.type == 1) "кг" else "шт"} ",
+                            text = " В наличии: ${product.stock} ${if (product.isWeight) "кг" else "шт"} ",
                             style = MaterialTheme.typography.labelSmall,
                             color = (if (product.stock > 0) Color(0xFF2E7D32) else Color.Red),
                             modifier = Modifier.padding(2.dp)

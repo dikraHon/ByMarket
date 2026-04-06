@@ -1,4 +1,4 @@
-package com.app.bymarket.presentation.screens
+package com.app.bymarket.presentation.screens.mainScreens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -15,11 +15,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.app.bymarket.domain.models.Product
 import com.app.bymarket.presentation.components.BarcodeScanner
-import com.app.bymarket.presentation.components.ProductCard
 import com.app.bymarket.presentation.vm.CartViewModel
 import com.app.bymarket.presentation.vm.ProductViewModel
 import kotlinx.coroutines.launch
+import androidx.compose.foundation.clickable
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,6 +37,8 @@ fun MainScreen(
     
     var barcodeInput by remember { mutableStateOf("") }
     var isScanning by remember { mutableStateOf(false) }
+    
+    var selectedProductForAdd by remember { mutableStateOf<Product?>(null) }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -47,7 +50,7 @@ fun MainScreen(
                         badge = {
                             if (cartItems.isNotEmpty()) {
                                 Badge {
-                                    Text(cartItems.sumOf { it.quantity }.toString())
+                                    Text(cartItems.sumOf { it.quantity }.toInt().toString())
                                 }
                             }
                         }
@@ -65,8 +68,6 @@ fun MainScreen(
     ) { paddingValues ->
         Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
             Column(modifier = Modifier.fillMaxSize()) {
-                
-                // Поле для ввода штрихкода + кнопка камеры
                 OutlinedTextField(
                     value = barcodeInput,
                     onValueChange = { barcodeInput = it },
@@ -93,8 +94,7 @@ fun MainScreen(
                                         val product = viewModel.searchByBarcode(barcodeInput)
                                         if (product != null) {
                                             if (product.stock > 0) {
-                                                cartViewModel.addToCart(product)
-                                                snackbarHostState.showSnackbar("Добавлено: ${product.name}")
+                                                selectedProductForAdd = product
                                                 barcodeInput = ""
                                             } else {
                                                 snackbarHostState.showSnackbar("Товара нет в наличии")
@@ -127,25 +127,37 @@ fun MainScreen(
                         items(products) { product ->
                             ProductCard(
                                 product = product,
-                                onAddToCart = { cartViewModel.addToCart(it) }
+                                onAddToCart = { selectedProductForAdd = it },
+                                modifier = Modifier.clickable { selectedProductForAdd = product }
                             )
                         }
                     }
                 }
             }
 
-            // Оверлей сканера камеры
+            selectedProductForAdd?.let { product ->
+                AddToCartDialog(
+                    product = product,
+                    onDismiss = { selectedProductForAdd = null },
+                    onConfirm = { quantity ->
+                        cartViewModel.addToCart(product, quantity)
+                        scope.launch {
+                            snackbarHostState.showSnackbar("Добавлено: ${product.name} ($quantity)")
+                        }
+                        selectedProductForAdd = null
+                    }
+                )
+            }
+
             if (isScanning) {
                 BarcodeScanner(
                     onResult = { result ->
                         barcodeInput = result
                         isScanning = false
-                        // Автоматический поиск при успешном сканировании
                         scope.launch {
                             val product = viewModel.searchByBarcode(result)
                             if (product != null && product.stock > 0) {
-                                cartViewModel.addToCart(product)
-                                snackbarHostState.showSnackbar("Сканировано и добавлено: ${product.name}")
+                                selectedProductForAdd = product
                                 barcodeInput = ""
                             }
                         }

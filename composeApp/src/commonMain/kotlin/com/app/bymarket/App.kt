@@ -14,7 +14,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.app.bymarket.presentation.navigation.Screen
-import com.app.bymarket.presentation.screens.*
 import com.app.bymarket.presentation.vm.CartViewModel
 import com.app.bymarket.presentation.vm.ProductViewModel
 import com.app.bymarket.presentation.vm.UserViewModel
@@ -22,6 +21,12 @@ import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 import bymarket.composeapp.generated.resources.Res
 import bymarket.composeapp.generated.resources.icon_main_logo
+import com.app.bymarket.presentation.screens.authScreens.AuthScreen
+import com.app.bymarket.presentation.screens.authScreens.LoginScreen
+import com.app.bymarket.presentation.screens.authScreens.RegistrationScreen
+import com.app.bymarket.presentation.screens.cartScreens.CartScreen
+import com.app.bymarket.presentation.screens.mainScreens.MainScreen
+import com.app.bymarket.presentation.screens.profileScreens.ProfileScreen
 
 val ScreenSaver = Saver<Screen, String>(
     save = {
@@ -111,6 +116,7 @@ fun App(
             )
             Screen.Cart -> CartScreen(
                 viewModel = koinViewModel<CartViewModel>(),
+                userViewModel = userViewModel,
                 onNavigateBack = { currentScreen = Screen.Main }
             )
             Screen.Profile -> ProfileScreen(

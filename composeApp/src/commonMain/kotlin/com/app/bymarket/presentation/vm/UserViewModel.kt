@@ -10,9 +10,18 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
+import com.app.bymarket.domain.models.Purchase
+import com.app.bymarket.domain.repository.PurchaseRepository
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.stateIn
+
+@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 class UserViewModel(
     private val authRepository: AuthRepository,
-    private val signOutUseCase: SignOutUseCase
+    private val signOutUseCase: SignOutUseCase,
+    private val purchaseRepository: PurchaseRepository
 ) : ViewModel() {
     
     private val _user = MutableStateFlow<User?>(null)
@@ -20,6 +29,12 @@ class UserViewModel(
 
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading
+
+    val purchaseHistory: StateFlow<List<Purchase>> = _user.flatMapLatest { currentUser ->
+        currentUser?.let {
+            purchaseRepository.getPurchaseHistory(it.uid)
+        } ?: flowOf(emptyList())
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     init {
         observeAuthState()

@@ -11,6 +11,9 @@ data class Product(
     val quant: Int,
     val stock: Double
 ) {
-    val displayPrice: String get() = "${price.toString()} ₽"
-    val displayBonus: String get() = if (bonus > 0) "-${bonus.toString()} ₽" else ""
+    val finalPrice: Double get() = (price - bonus).coerceAtLeast(0.0)
+    val isWeight: Boolean get() = type == 1
+    
+    val displayPrice: String get() = "${price} ₽"
+    val displayFinalPrice: String get() = "${finalPrice} ₽"
 }

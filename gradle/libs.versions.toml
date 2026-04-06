@@ -21,6 +21,7 @@ room = "2.8.4"
 sqlite = "2.6.2"
 ksp = "2.3.2"
 firebase-gitlive = "2.4.0"
+kotlinx-datetime = "0.6.0"
 zxing = "3.5.3"
 play-services-mlkit-barcode-scanning = "18.3.1"
 camera-view = "1.4.1"
@@ -71,6 +72,9 @@ sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sql
 firebase-auth = { module = "dev.gitlive:firebase-auth", version.ref = "firebase-gitlive" }
 firebase-firestore = { module = "dev.gitlive:firebase-firestore", version.ref = "firebase-gitlive" }
 firebase-database = { module = "dev.gitlive:firebase-database", version.ref = "firebase-gitlive" }
+
+# Date Time
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
 
 # Barcode & Camera
 zxing-core = { module = "com.google.zxing:core", version.ref = "zxing" }

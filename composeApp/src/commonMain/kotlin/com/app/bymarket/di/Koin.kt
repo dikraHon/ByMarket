@@ -40,6 +40,7 @@ val databaseModule = module {
 val repositoryModule = module {
     single<AuthRepository> { AuthRepositoryImpl(get(), get()) }
     single<ProductRepository> { ProductRepositoryImpl(get(), get(), get(), get()) }
+    single<com.app.bymarket.domain.repository.PurchaseRepository> { com.app.bymarket.data.repository.PurchaseRepositoryImpl(get()) }
 }
 
 val useCaseModule = module {
@@ -51,9 +52,9 @@ val useCaseModule = module {
 
 val viewModelModule = module {
     factory { AuthViewModel(get(), get()) }
-    factory { UserViewModel(get(), get()) }
+    factory { UserViewModel(get(), get(), get()) }
     factory { ProductViewModel(get(), get(), get(), get(), get()) }
-    single { CartViewModel() }
+    single { CartViewModel(get()) }
 }
 
 fun initKoin(appDeclaration: KoinAppDeclaration = {}) =

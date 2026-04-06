@@ -1,4 +1,4 @@
-package com.app.bymarket.presentation.screens
+package com.app.bymarket.presentation.screens.authScreens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
