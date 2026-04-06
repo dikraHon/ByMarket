@@ -2,11 +2,13 @@ package com.app.bymarket.presentation.screens.authScreens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.app.bymarket.presentation.screens.authScreens.components.EmailField
 import com.app.bymarket.presentation.screens.authScreens.components.NameField
@@ -34,6 +36,7 @@ fun RegistrationScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
+            .imePadding()
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -46,7 +49,8 @@ fun RegistrationScreen(
             value = state.lastName,
             onValueChange = { viewModel.onEvent(AuthEvent.LastNameChanged(it)) },
             label = "Фамилия",
-            error = state.lastNameError
+            error = state.lastNameError,
+            imeAction = ImeAction.Next
         )
         
         Spacer(modifier = Modifier.height(8.dp))
@@ -55,7 +59,8 @@ fun RegistrationScreen(
             value = state.firstName,
             onValueChange = { viewModel.onEvent(AuthEvent.FirstNameChanged(it)) },
             label = "Имя",
-            error = state.firstNameError
+            error = state.firstNameError,
+            imeAction = ImeAction.Next
         )
         
         Spacer(modifier = Modifier.height(8.dp))
@@ -63,7 +68,8 @@ fun RegistrationScreen(
         NameField(
             value = state.patronymic,
             onValueChange = { viewModel.onEvent(AuthEvent.PatronymicChanged(it)) },
-            label = "Отчество (необязательно)"
+            label = "Отчество (необязательно)",
+            imeAction = ImeAction.Next
         )
         
         Spacer(modifier = Modifier.height(8.dp))
@@ -71,7 +77,8 @@ fun RegistrationScreen(
         EmailField(
             value = state.email,
             onValueChange = { viewModel.onEvent(AuthEvent.EmailChanged(it)) },
-            error = state.emailError
+            error = state.emailError,
+            imeAction = ImeAction.Next
         )
         
         Spacer(modifier = Modifier.height(8.dp))
@@ -79,7 +86,11 @@ fun RegistrationScreen(
         PasswordField(
             value = state.password,
             onValueChange = { viewModel.onEvent(AuthEvent.PasswordChanged(it)) },
-            error = state.passwordError
+            error = state.passwordError,
+            imeAction = ImeAction.Done,
+            keyboardActions = KeyboardActions(onDone = {
+                viewModel.onEvent(AuthEvent.SignUpClicked)
+            })
         )
         
         state.generalError?.let {

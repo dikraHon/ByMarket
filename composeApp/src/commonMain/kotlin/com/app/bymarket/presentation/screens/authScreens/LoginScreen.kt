@@ -1,10 +1,14 @@
 package com.app.bymarket.presentation.screens.authScreens
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.app.bymarket.presentation.screens.authScreens.components.EmailField
 import com.app.bymarket.presentation.screens.authScreens.components.PasswordField
@@ -28,7 +32,11 @@ fun LoginScreen(
     }
 
     Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .imePadding()
+            .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -39,7 +47,8 @@ fun LoginScreen(
         EmailField(
             value = state.email,
             onValueChange = { viewModel.onEvent(AuthEvent.EmailChanged(it)) },
-            error = state.emailError
+            error = state.emailError,
+            imeAction = ImeAction.Next
         )
         
         Spacer(modifier = Modifier.height(8.dp))
@@ -47,7 +56,11 @@ fun LoginScreen(
         PasswordField(
             value = state.password,
             onValueChange = { viewModel.onEvent(AuthEvent.PasswordChanged(it)) },
-            error = state.passwordError
+            error = state.passwordError,
+            imeAction = ImeAction.Done,
+            keyboardActions = KeyboardActions(onDone = {
+                viewModel.onEvent(AuthEvent.LoginClicked)
+            })
         )
         
         state.generalError?.let {

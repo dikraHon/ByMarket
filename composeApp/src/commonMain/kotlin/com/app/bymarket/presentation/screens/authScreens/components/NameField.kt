@@ -1,9 +1,11 @@
 package com.app.bymarket.presentation.screens.authScreens.components
 
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.ImeAction
 
 @Composable
 fun NameField(
@@ -11,7 +13,9 @@ fun NameField(
     onValueChange: (String) -> Unit,
     label: String,
     modifier: Modifier = Modifier,
-    error: String? = null
+    error: String? = null,
+    imeAction: ImeAction = ImeAction.Next,
+    keyboardActions: KeyboardActions = KeyboardActions.Default
 ) {
     BaseAuthField(
         value = value,
@@ -20,6 +24,8 @@ fun NameField(
         leadingIcon = Icons.Default.Person,
         isError = error != null,
         errorMessage = error,
-        modifier = modifier
+        modifier = modifier,
+        imeAction = imeAction,
+        keyboardActions = keyboardActions
     )
 }
